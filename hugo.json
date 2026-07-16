@@ -1,6 +1,6 @@
 {
-  "baseURL": "https://example.org/",
-  "title": "Project Documentation",
+  "baseURL": "https://uplang.github.io/docs.go-tsvsheet/",
+  "title": "go-tsvsheet",
   "publishDir": "_site",
   "enableRobotsTXT": true,
   "markup": {
@@ -12,6 +12,6 @@
     }
   },
   "params": {
-    "description": "Public documentation for the project."
+    "description": "go-tsvsheet — the tsvsheet single-file-spreadsheet engine as an importable Go library."
   }
 }
