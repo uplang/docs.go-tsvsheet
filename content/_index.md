@@ -44,6 +44,10 @@ func main() {
 
 A `.tsvt` is the whole spreadsheet: one grid, each cell a literal or an `=formula`. Formulas address other cells in A1 notation — a single cell (`B2`), a range (`D2:D5`), or, when you inject a loader, a cross-sheet reference (`"prices"!A1`). The expression sublanguage is Excel-faithful: `^` (power), `&` (concatenation), postfix `%`, `TRUE`/`FALSE`, error-value literals, and a broad function library. Because the file is plain TSV, a sheet versions as text and diffs line by line. The language itself is specified in the [tsvsheet](https://github.com/tsvsheet/tsvsheet) repo.
 
+### Pipes — shell-style formula composition
+
+Formulas can compose like a pipeline: `expr | fn(arg, …)` is sugar for the call with the piped expression as its first argument — `=A1 | round(2)` is exactly `=round(A1, 2)`, and `=A2:A10 | sort() | unique() | count()` folds left into the composed calls. The engine desugars the pipe at parse time (SPECIFICATION §5.4), so evaluation, `Check`, `Explain`, and the dependency graph see only ordinary function application — there is no second execution path — while rendering (`Explain` traces, structural edits) preserves the author's pipe spelling.
+
 ## Core API
 
 - **`Parse(src []byte) (Sheet, error)`** — compile a `.tsvt` grid into an immutable `Sheet`. A malformed formula is `ErrSyntax`, naming the offending cell.
