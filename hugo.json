@@ -1,5 +1,5 @@
 {
-  "baseURL": "https://uplang.github.io/docs.go-tsvsheet/",
+  "baseURL": "https://tsvsheet.github.io/docs.go-tsvsheet/",
   "title": "go-tsvsheet",
   "publishDir": "_site",
   "enableRobotsTXT": true,

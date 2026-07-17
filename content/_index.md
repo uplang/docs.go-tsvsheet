@@ -2,17 +2,17 @@
 title: Home
 ---
 
-**The [tsvsheet](https://github.com/uplang/tsvsheet) engine as an importable Go library.** A `.tsvt` file _is_ a spreadsheet — a single TAB-separated grid whose cells are literal values or `=formulas` that address other cells in A1 notation (`B2`, `D2:D5`), computed in place. `go-tsvsheet` parses that grid, evaluates every formula in dependency order, and hands you the computed values — with no filesystem or network access unless you inject it.
+**The [tsvsheet](https://github.com/tsvsheet/tsvsheet) engine as an importable Go library.** A `.tsvt` file _is_ a spreadsheet — a single TAB-separated grid whose cells are literal values or `=formulas` that address other cells in A1 notation (`B2`, `D2:D5`), computed in place. `go-tsvsheet` parses that grid, evaluates every formula in dependency order, and hands you the computed values — with no filesystem or network access unless you inject it.
 
-The library is the one engine behind the [`tsvsheet`](https://github.com/uplang/tsvsheet.go) CLI, its browser editor, and its TUI. Import it to compute `.tsvt` sheets from your own Go programs, services, or tools.
+The library is the one engine behind the [`tsvsheet`](https://github.com/tsvsheet/tsvsheet.go) CLI, its browser editor, and its TUI. Import it to compute `.tsvt` sheets from your own Go programs, services, or tools.
 
 ## Install
 
 ```sh
-go get github.com/uplang/go-tsvsheet
+go get github.com/tsvsheet/go-tsvsheet
 ```
 
-API reference: **[pkg.go.dev/github.com/uplang/go-tsvsheet](https://pkg.go.dev/github.com/uplang/go-tsvsheet)**.
+API reference: **[pkg.go.dev/github.com/tsvsheet/go-tsvsheet](https://pkg.go.dev/github.com/tsvsheet/go-tsvsheet)**.
 
 ## Quickstart
 
@@ -22,7 +22,7 @@ package main
 import (
 	"fmt"
 
-	tsvsheet "github.com/uplang/go-tsvsheet"
+	tsvsheet "github.com/tsvsheet/go-tsvsheet"
 )
 
 func main() {
@@ -42,7 +42,7 @@ func main() {
 
 ## The model
 
-A `.tsvt` is the whole spreadsheet: one grid, each cell a literal or an `=formula`. Formulas address other cells in A1 notation — a single cell (`B2`), a range (`D2:D5`), or, when you inject a loader, a cross-sheet reference (`"prices"!A1`). The expression sublanguage is Excel-faithful: `^` (power), `&` (concatenation), postfix `%`, `TRUE`/`FALSE`, error-value literals, and a broad function library. Because the file is plain TSV, a sheet versions as text and diffs line by line. The language itself is specified in the [tsvsheet](https://github.com/uplang/tsvsheet) repo.
+A `.tsvt` is the whole spreadsheet: one grid, each cell a literal or an `=formula`. Formulas address other cells in A1 notation — a single cell (`B2`), a range (`D2:D5`), or, when you inject a loader, a cross-sheet reference (`"prices"!A1`). The expression sublanguage is Excel-faithful: `^` (power), `&` (concatenation), postfix `%`, `TRUE`/`FALSE`, error-value literals, and a broad function library. Because the file is plain TSV, a sheet versions as text and diffs line by line. The language itself is specified in the [tsvsheet](https://github.com/tsvsheet/tsvsheet) repo.
 
 ## Core API
 
@@ -82,9 +82,9 @@ Two distinct kinds of error:
 
 ## Design
 
-The public surface is one package — `github.com/uplang/go-tsvsheet` — a thin, documented facade. The evaluator, the A1 resolver, the function library, and the generated parser are all internal; no parser or grammar type escapes into the public API. Every allocation is bounded, every collaborator is injected, and the engine is `filesystem`- and `network`-free by construction.
+The public surface is one package — `github.com/tsvsheet/go-tsvsheet` — a thin, documented facade. The evaluator, the A1 resolver, the function library, and the generated parser are all internal; no parser or grammar type escapes into the public API. Every allocation is bounded, every collaborator is injected, and the engine is `filesystem`- and `network`-free by construction.
 
 ## Related
 
-- **[tsvsheet](https://github.com/uplang/tsvsheet)** — the language and grammar specification.
-- **[tsvsheet.go](https://github.com/uplang/tsvsheet.go)** — the CLI, browser editor, and TUI built on this engine.
+- **[tsvsheet](https://github.com/tsvsheet/tsvsheet)** — the language and grammar specification.
+- **[tsvsheet.go](https://github.com/tsvsheet/tsvsheet.go)** — the CLI, browser editor, and TUI built on this engine.
