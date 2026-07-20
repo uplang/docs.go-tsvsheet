@@ -60,6 +60,26 @@ Formulas can compose like a pipeline: `expr | fn(arg, …)` is sugar for the cal
 
 `Sheet` is immutable and every method is a value receiver: computing, editing, or inspecting a sheet never mutates it, so sheets are safe to copy, alias, and share across goroutines.
 
+### The document layer — comments and shebang round-trip
+
+`Parse` reads the grid; **`ParseDocument(src []byte) (Document, error)`** reads the whole file, additionally recording its physical line layout. A `Document` is a `Sheet` plus that layout, so full-line comments (`# …`) and a `#!` shebang — which the grid drops — survive editing and are written back in position:
+
+- **`Document.Sheet() Sheet`** — the parsed sheet the document wraps.
+- **`Document.Text() []byte`** — serialize the document canonically: lines in layout order, comments verbatim, grid rows tab-joined, every line newline-terminated. For input already in canonical form, `ParseDocument` followed by `Text` is byte-identity.
+- **`Document.SetCell`**, **`InsertRow`/`DeleteRow`/`InsertCol`/`DeleteCol`** — the structural edits at the document level; each returns a new `Document` with the layout kept in step.
+
+`Text` is the one sanctioned way to serialize a sheet back to disk — writing a grid out by hand loses every comment line and the shebang. Like `Sheet`, `Document` is immutable: every editing operation returns a new `Document`.
+
+### Standalone expressions — the engine without a sheet
+
+A formula's expression can be compiled and evaluated on its own, detached from any sheet:
+
+- **`CompileExpr(src []byte) (Expr, error)`** — compile one bare expression, the text that would follow `=` in a formula cell. A malformed expression is `ErrSyntax` carrying line/column detail.
+- **`Expr.Eval(g Grid, opts ComputeOptions) Value`** — evaluate against a grid with the exact semantics of a formula cell in a sheet over that grid: reference resolution, literal coercion, ranges, dynamic arrays, error-value propagation, volatile functions from `opts.At`, `Limits` enforcement, and `Loader`/`Fetcher` gating. It returns error values, never Go errors.
+- **`FormatValue(v Value) string`** — the canonical computed-cell text for a value, byte-identical to what `WriteTSV` emits for it in a computed grid; a 2-D array value reduces to its scalar-context (top-left) value before formatting.
+
+A compiled `Expr` is an immutable value: compile once, then evaluate it against any number of grids, including concurrently. This is the surface the [tq](https://github.com/tsvsheet/tq) query language's engine ([go-tq](https://github.com/tsvsheet/go-tq)) evaluates every embedded expression through.
+
 ## Injected collaborators — the engine stays pure
 
 The engine touches neither the filesystem nor the network on its own. Cross-file features work only through collaborators you inject via `ComputeOptions`, which keeps `go-tsvsheet` deterministic and trivially testable:
