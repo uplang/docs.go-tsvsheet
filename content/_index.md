@@ -51,7 +51,8 @@ Formulas can compose like a pipeline: `expr | fn(arg, …)` is sugar for the cal
 ## Core API
 
 - **`Parse(src []byte) (Sheet, error)`** — compile a `.tsvt` grid into an immutable `Sheet`. A malformed formula is `ErrSyntax`, naming the offending cell.
-- **`Sheet.Compute() Grid`** / **`ComputeAt(t time.Time) Grid`** — evaluate every formula and return the `Grid` (`[][]string`). `ComputeAt` injects the clock, so volatile functions (`TODAY`, `NOW`, `ISNOW`) are deterministic and testable.
+- **`Sheet.Compute() Grid`** / **`ComputeAt(t time.Time) Grid`** / **`ComputeAtTick(t time.Time, tick Tick) Grid`** — evaluate every formula and return the `Grid` (`[][]string`). `ComputeAt` injects the clock (and seeds the per-pass PRNG from it), so the clock reads (`TODAY`, `NOW`, `ISNOW`) and generators (`RAND`, `RANDBETWEEN`, `RANDARRAY`) are deterministic and testable; `ComputeAtTick` also injects the recompute-pass ordinal read by `TICK`/`FRAME`.
+- **`Sheet.IsVolatile() bool`** / **`VolatileSchedules() []string`** — whether any cell is wrapped in `volatile(…)`, and each such cell's refresh-cadence spec (an isnow pattern, a duration, or empty for the default) — a frontend unions these into its auto-refresh loop. Nothing is volatile without `volatile()`.
 - **`Sheet.ComputeWith(ComputeOptions) Grid`** — compute with injected collaborators (below).
 - **`Check(s Sheet) []Diagnostic`** — static diagnostics (unknown functions, provable arity errors, non-A1 references) without computing.
 - **`Sheet.Explain(...) Trace`** — trace how a cell's value was produced: its formula, the inputs it read, and the result.
@@ -75,7 +76,7 @@ Formulas can compose like a pipeline: `expr | fn(arg, …)` is sugar for the cal
 A formula's expression can be compiled and evaluated on its own, detached from any sheet:
 
 - **`CompileExpr(src []byte) (Expr, error)`** — compile one bare expression, the text that would follow `=` in a formula cell. A malformed expression is `ErrSyntax` carrying line/column detail.
-- **`Expr.Eval(g Grid, opts ComputeOptions) Value`** — evaluate against a grid with the exact semantics of a formula cell in a sheet over that grid: reference resolution, literal coercion, ranges, dynamic arrays, error-value propagation, volatile functions from `opts.At`, `Limits` enforcement, and `Loader`/`Fetcher` gating. It returns error values, never Go errors.
+- **`Expr.Eval(g Grid, opts ComputeOptions) Value`** — evaluate against a grid with the exact semantics of a formula cell in a sheet over that grid: reference resolution, literal coercion, ranges, dynamic arrays, error-value propagation, clock and generator reads seeded from `opts.At`, `Limits` enforcement, and `Loader`/`Fetcher` gating. It returns error values, never Go errors.
 - **`FormatValue(v Value) string`** — the canonical computed-cell text for a value, byte-identical to what `WriteTSV` emits for it in a computed grid; a 2-D array value reduces to its scalar-context (top-left) value before formatting.
 
 A compiled `Expr` is an immutable value: compile once, then evaluate it against any number of grids, including concurrently. This is the surface the [tq](https://github.com/tsvsheet/tq) query language's engine ([go-tq](https://github.com/tsvsheet/go-tq)) evaluates every embedded expression through.
